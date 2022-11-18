@@ -54,11 +54,22 @@ def concat_ko_en_vec():
     concat_df.to_csv(f"../dataset_timeseries/kr_en_v.csv")
 
 
+def concat_monolingual_vec(language):
+    time_df = pd.read_csv("../dataset/kr_en_10000_bench.csv")
+    time_df = time_df[["time"]]
+
+    doc_df = np.load(f"../dataset/{language}_doc_v.npy")
+    doc_df = pd.DataFrame(doc_df)
+    doc_df = pd.concat([time_df, doc_df], axis=1)
+
+    doc_df.to_csv(f"../custom_dataset/{language}_v.csv")
+
+
 def concat_ko_en_wordlist():
     kr_word = pd.read_csv("../dataset/kr_word_list.csv")
     en_word = pd.read_csv("../dataset/en_word_list.csv")
     words = pd.concat([kr_word, en_word], axis=0)
-    words.to_csv(f"../dataset_timeseries/words.csv", index=None)
+    words.to_csv(f"../custom_dataset/concat_words.csv", index=None)
 
 
 if __name__ == "__main__":
