@@ -3,22 +3,38 @@ import pandas as pd
 import numpy as np
 import pickle
 from .csv_to_numpy import csv_to_numpy
+import os.path
+from .kmeans import clustering
 
 
-def make_cluster_information_csv():
+def make_cluster_information_csv(folderpath, n_cluster):
     # origin dataset에 KMeans(n_cluster=15)를 거친 label을 추가한다.
-    folderpath = "../dataset_timeseries/"
+    origin_df = pd.read_csv("../dataset_timeseries/kr_en_v.csv")
+    if os.path.isfile(f"{folderpath}/label") and os.path.isfile(
+        f"{folderpath}/cluster"
+    ):
+        pass
+    else:
+        os.makedirs(folderpath)
+        print("Trying to make label of original data.")
+        label, centroids, _ = clustering(origin_df, "kmeans", n_cluster)
+        with open(f"{folderpath}/label", "wb") as fp:
+            pickle.dump(label, fp)
+        with open(f"{folderpath}/centroids", "wb") as fp:
+            pickle.dump(label, fp)
+
     with open(f"{folderpath}/label", "rb") as fp:
         label = pickle.load(fp)
-        print("label is loaded.")  # 각 문서(index)가 어느 cluster인지(value)
-        # ex ) 1번 문서는 1번 cluster이다.
-    origin_df = pd.read_csv("../dataset_timeseries/kr_en_v.csv")
-    label_df = pd.DataFrame(label, columns=["label"])
+        print("label is loaded.")
+    with open(f"{folderpath}/centroids", "rb") as fp2:
+        centroids = pickle.load(fp2)
+        print("Centroids is loaded.")
 
+    label_df = pd.DataFrame(label, columns=["label"])
     origin_df.insert(1, "cluster", label_df)
     origin_df = origin_df.drop(["Unnamed: 0"], axis=1)
 
-    return origin_df
+    return origin_df, centroids
 
 
 def find_docx_centroid(docx):
@@ -102,27 +118,31 @@ def make_base_vector(centroid_list, whole_centroid_list):
     measurements = centroid_list
 
     for idx1, cluster in enumerate(measurements):
-        whole_centorid = np.expand_dims(whole_centroid_list[idx1], axis=0).astype(
-            np.float
-        )
-        cluster = cluster - whole_centorid
-        motion_controls[idx1] = cluster
+        for idx2 in range(len(cluster) - 1):
+            motion_controls[idx1].append(cluster[idx2 + 1] - cluster[idx2])
+
+    # if you want to compare to whole centroid vec, use this code
+    # for idx1, cluster in enumerate(measurements):
+    #     whole_centorid = np.expand_dims(whole_centroid_list[idx1], axis=0).astype(
+    #         np.float
+    #     )
+    #     cluster = cluster - whole_centorid
+    #     motion_controls[idx1] = cluster
 
     motion_controls = np.array(motion_controls)
+    print(motion_controls.shape)
     return motion_controls, measurements
 
 
 def make_base(n_cluster, start, end):
-    origin_df = make_cluster_information_csv()
+    folderpath = f"../label/{n_cluster}"
+    origin_df, whole_centroid_list = make_cluster_information_csv(folderpath, n_cluster)
     centroid_list, docx_count_list = cluster_to_time_centroid(
         n_cluster, start, end, origin_df
     )
     # centroid_list[n][m] : n번 cluster의 m time에서의 중심점
     # docx_count_list[n][m] : n번 cluster의 m time의 문서 개수
-    whole_centroid_list = csv_to_numpy(
-        f"../dataset_timeseries/kmean/{n_cluster}/whole/whole_centroid_list.csv",
-        "centroid",
-    )  # 전체 dataset에서 n개로 clustering한 좌표. (n_cluster, len_centroid_vector)
+    # whole_centroid_list : 전체 dataset에서 n개로 clustering한 좌표. (n_cluster, len_centroid_vector)
 
     scala_motion_controls, scala_measurements = make_base_scala(docx_count_list)
     vector_motion_controls, vector_measurements = make_base_vector(
