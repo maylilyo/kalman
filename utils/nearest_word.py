@@ -1,4 +1,4 @@
-from csv_to_numpy import csv_to_numpy
+from .csv_to_numpy import csv_to_numpy
 import pandas as pd
 import numpy as np
 import tqdm

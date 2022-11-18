@@ -2,7 +2,7 @@ import operator
 import pandas as pd
 import numpy as np
 import pickle
-from KalmanFilter.utils.csv_to_numpy import csv_to_numpy
+from .csv_to_numpy import csv_to_numpy
 
 
 def make_cluster_information_csv():

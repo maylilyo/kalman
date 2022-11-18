@@ -1,6 +1,6 @@
 from utils.make_kalman_base import make_base
 from kalman_filter import kalman_filter_scala, kalman_filter_vector
-from KalmanFilter.utils.nearest_word import find_nearest_word
+from utils.nearest_word import find_nearest_word
 from utils.kmeans import clustering
 
 
