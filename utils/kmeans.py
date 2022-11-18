@@ -8,6 +8,6 @@ def clustering(df, methods, n_cluster):
         centroids = model.cluster_centers_
         return label, centroids, n_cluster
 
-def find_centroid(df, methods, n_cluster):
-    _, centroids, _ = clustering(df, methods, n_cluster)
+def find_label_centroid(df, methods, n_cluster):
+    label, centroids, _ = clustering(df, methods, n_cluster)
     return centroids
