@@ -64,7 +64,6 @@ def kalman_filter_scala(scala_motion_controls, scala_measurements):
         #     f"predict next cluster rate of {i} is {round(mu * 100, 4)}, actually {round(measurements[-1] * 100, 4)}."
         # )
         # print(f"{round(mu * 100, 4)}, {round(measurements[-1] * 100, 4)}")
-        print(f"{round(mu, 4)}")
         # print(f"{round(mu, 4)}")
 
 
@@ -95,7 +94,7 @@ def average(measurements, years, mode):
     if mode == "scala":
         for measurement in measurements:
             measurement = measurement[-years - 1 : -1]
-            print(round(sum(measurement) / years, 4))
+            # print(round(sum(measurement) / years, 4))
     else:
         total_cos = 0
         for i, measurement in enumerate(measurements):
@@ -104,7 +103,7 @@ def average(measurements, years, mode):
             mean = np.mean(measurement, axis=0)
             cos_sim = cosine_similarity(mean, centroid)
             total_cos += cos_sim
-            print(round(cos_sim, 4))
+            # print(round(cos_sim, 4))
         # print(round(total_cos / len(measurements), 4))
 
 
@@ -116,4 +115,4 @@ if __name__ == "__main__":
         vector_measurements,
     ) = make_base(15, 2011, 2021)
     kalman_filter_scala(scala_motion_controls, scala_measurements)
-    # kalman_filter_vector(vector_motion_controls, vector_measurements)
+    kalman_filter_vector(vector_motion_controls, vector_measurements)
