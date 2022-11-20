@@ -21,26 +21,26 @@ def get_neighbors(centroid, words, num_neighbors):
     return neighbor, distance
 
 
-def find_nearest_word(folderpath, datapath, n_word):
-    if "Ai" in datapath:
-        words_v = np.load(f"{datapath}/ai_word_kr.npy")
-        words = np.load(f"{datapath}/ai_word_list_kr.npy")
+def find_nearest_word(custompath, args):
+    if "Ai" in args.datapath:
+        words_v = np.load(f"{args.datapath}/ai_word_kr.npy")
+        words = np.load(f"{args.datapath}/ai_word_list_kr.npy")
         words = pd.DataFrame(words, columns=["word_list"])
         print(words_v.shape, words.shape)
         return
 
     else:
-        kr_word_v = np.load(f"{datapath}/kr_word_v.npy")
-        en_word_v = np.load(f"{datapath}/en_word_v.npy")
+        kr_word_v = np.load(f"{args.datapath}/kr_word_v.npy")
+        en_word_v = np.load(f"{args.datapath}/en_word_v.npy")
         words_v = np.concatenate([kr_word_v, en_word_v])
         words = pd.read_csv(f"../dataset_timeseries/words.csv")
 
-    with open(f"{folderpath}/{words_v.shape[1]}/centroids", "rb") as fp2:
+    with open(f"{custompath}/{words_v.shape[1]}/centroids", "rb") as fp2:
         whole_centroid_list = pickle.load(fp2)
 
     total_word_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
-        neighbors, _ = get_neighbors(centroid, words_v, n_word)
+        neighbors, _ = get_neighbors(centroid, words_v, args.n_word)
         print(neighbors)
         centroid_word_list = []
         for neighbor in neighbors:
@@ -51,21 +51,21 @@ def find_nearest_word(folderpath, datapath, n_word):
         print(f"centroid {i} : word {total_word_list[i]}")
 
 
-def find_nearest_docx(custompath, datapath, n_docs):
-    if "Ai" in datapath:
-        doc_v = np.load(f"{datapath}/ai_doc_kr.npy")
-        docs = pd.read_csv(f"{datapath}/data.csv")
+def find_nearest_docx(custompath, args):
+    if "Ai" in args.datapath:
+        doc_v = np.load(f"{args.datapath}/ai_doc_kr.npy")
+        docs = pd.read_csv(f"{args.datapath}/data.csv")
 
     else:
-        doc_v = np.load(f"{datapath}/kr_doc_v.npy")
-        docs = pd.read_csv(f"{datapath}/kr_en_10000_bench.csv")
+        doc_v = np.load(f"{args.datapath}/kr_doc_v.npy")
+        docs = pd.read_csv(f"{args.datapath}/kr_en_10000_bench.csv")
 
     with open(f"{custompath}/{doc_v.shape[1]}/centroids", "rb") as fp:
         whole_centroid_list = pickle.load(fp)
 
     total_docs_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
-        neighbors, distances = get_neighbors(centroid, doc_v, n_docs)
+        neighbors, distances = get_neighbors(centroid, doc_v, args.n_docs)
         centroid_word_list = []
         for neighbor in neighbors:
             centroid_word_list.append(docs["kr"][neighbor])
@@ -73,14 +73,3 @@ def find_nearest_docx(custompath, datapath, n_docs):
 
     for i in range(len(total_docs_list)):
         print(f"centroid {i} : docs {total_docs_list[i]}")
-
-
-if __name__ == "__main__":
-    n_cluster = 70
-    n_word = 10
-    n_docs = 1
-    custompath = f"../label/{n_cluster}"
-    datapath = f"../dataset/"
-
-    find_nearest_word(custompath, datapath, n_word)
-    find_nearest_docx(custompath, datapath, n_docs)
