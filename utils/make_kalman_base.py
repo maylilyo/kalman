@@ -7,32 +7,55 @@ import os.path
 from .kmeans import clustering
 
 
-def make_cluster_information_csv(folderpath, n_cluster):
-    # origin dataset에 KMeans(n_cluster=15)를 거친 label을 추가한다.
-    origin_df = pd.read_csv("../dataset_timeseries/kr_en_v.csv")
-    if os.path.isfile(f"{folderpath}/label") and os.path.isfile(
-        f"{folderpath}/cluster"
+def make_origin_df(datapath):
+    if "Ai" in datapath:
+        origin_df = np.load(f"{datapath}/ai_doc_kr.npy")
+        shape = origin_df.shape[1]
+        origin_df = pd.DataFrame(origin_df)
+
+        time_df = pd.read_csv(f"{datapath}/data.csv")["time"]
+        time_df = time_df[: origin_df.shape[0]]  # TMP
+
+        label_centroid_df = origin_df
+        origin_df = pd.concat([time_df, origin_df], axis=1)
+    else:
+        origin_df = pd.read_csv(f"{datapath}/kr_en_v.csv")
+        shape = origin_df.shape[1]
+        if shape == 770:
+            origin_df.drop(["Unnamed: 0"], axis=1, inplace=True)
+            label_centroid_df = origin_df.drop(columns=["time"], axis=1)
+
+    return origin_df, label_centroid_df, shape
+
+
+def make_cluster_information_csv(folderpath, datapath, n_cluster):
+    # origin dataset에 KMeans를 거친 label을 추가한다.
+    origin_df, label_centroid_df, shape = make_origin_df(datapath)
+    # origin_df, label_centroid_df, shape = make_origin_df("../dataset_timeseries")
+
+    if os.path.isfile(f"{folderpath}/{shape}/label") and os.path.isfile(
+        f"{folderpath}/{shape}/centroids"
     ):
         pass
     else:
-        os.makedirs(folderpath)
+        if not os.path.isdir(f"{folderpath}/{shape}"):
+            os.makedirs(f"{folderpath}/{shape}")
         print("Trying to make label of original data.")
-        label, centroids, _ = clustering(origin_df, "kmeans", n_cluster)
-        with open(f"{folderpath}/label", "wb") as fp:
+        label, centroids, _ = clustering(label_centroid_df, "kmeans", n_cluster)
+        with open(f"{folderpath}/{shape}/label", "wb") as fp:
             pickle.dump(label, fp)
-        with open(f"{folderpath}/centroids", "wb") as fp:
-            pickle.dump(label, fp)
+        with open(f"{folderpath}/{shape}/centroids", "wb") as fp:
+            pickle.dump(centroids, fp)
 
-    with open(f"{folderpath}/label", "rb") as fp:
+    with open(f"{folderpath}/{shape}/label", "rb") as fp:
         label = pickle.load(fp)
         print("label is loaded.")
-    with open(f"{folderpath}/centroids", "rb") as fp2:
+    with open(f"{folderpath}/{shape}/centroids", "rb") as fp2:
         centroids = pickle.load(fp2)
         print("Centroids is loaded.")
 
     label_df = pd.DataFrame(label, columns=["label"])
     origin_df.insert(1, "cluster", label_df)
-    origin_df = origin_df.drop(["Unnamed: 0"], axis=1)
 
     return origin_df, centroids
 
@@ -58,9 +81,9 @@ def cluster_to_time_centroid(n_cluster, start, end, origin_df):
 
     for i in range(n_cluster):  # n번째 cluster에 대해
         n_cluster = origin_df[origin_df["cluster"] == i]
-        # print(n_cluster)
         for j in range(start, end + 1):  # m번째 time의 문서 개수 / 중심(mean)
             time_docx = n_cluster[n_cluster["time"] == j]
+            # TODO : cluster 개수가 많아지면 cluster가 없을 수도 있음. 그럴 경우엔 어떻게?
             docx_count_list[i].append(len(time_docx))
             centroid_list[i].append(find_docx_centroid(time_docx))
     centroid_list = np.array(centroid_list)
@@ -86,7 +109,7 @@ def make_base_scala(docx_count_list):
 
     # 클러스터 내부 문서 / 모든 클러스터(전체) 문서 비율
     total_sum = np.sum(measurements)  # 전체 문서의 합계
-    print(f"total sum is {total_sum}")
+    # print(f"total sum is {total_sum}")
     measurements = np.divide(measurements, total_sum) * 100
 
     # 클러스터 내부 문서 / 클러스터별 전체 문서 비율
@@ -130,16 +153,26 @@ def make_base_vector(centroid_list, whole_centroid_list):
     #     motion_controls[idx1] = cluster
 
     motion_controls = np.array(motion_controls)
-    print(motion_controls.shape)
+    # print(motion_controls.shape)
     return motion_controls, measurements
 
 
-def make_base(n_cluster, start, end):
-    folderpath = f"../label/{n_cluster}"
-    origin_df, whole_centroid_list = make_cluster_information_csv(folderpath, n_cluster)
+def make_base(folderpath, args):
+
+    datapath = args.datapath
+    n_cluster = args.n_cluster
+    start = args.start_date
+    end = args.end_date
+
+    origin_df, whole_centroid_list = make_cluster_information_csv(
+        folderpath, datapath, n_cluster
+    )
+    # print(origin_df.shape, whole_centroid_list.shape)
+
     centroid_list, docx_count_list = cluster_to_time_centroid(
         n_cluster, start, end, origin_df
     )
+
     # centroid_list[n][m] : n번 cluster의 m time에서의 중심점
     # docx_count_list[n][m] : n번 cluster의 m time의 문서 개수
     # whole_centroid_list : 전체 dataset에서 n개로 clustering한 좌표. (n_cluster, len_centroid_vector)

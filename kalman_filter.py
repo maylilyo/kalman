@@ -86,7 +86,6 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
             mu, sig = measurement_update(mu, sig, measurements[j], measurement_var)
         cos_sim = cosine_similarity(mu, measurements[-1])
         total_cos += cos_sim
-        # print(round(cos_sim, 4))
     # print(total_cos / len(vector_measurements))  # 비율로 print 해야할 때
 
 

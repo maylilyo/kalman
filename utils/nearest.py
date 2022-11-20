@@ -22,23 +22,26 @@ def get_neighbors(centroid, words, num_neighbors):
 
 
 def find_nearest_word(folderpath, datapath, n_word):
-    with open(f"{folderpath}/centroids", "rb") as fp2:
+    if "Ai" in datapath:
+        words_v = np.load(f"{datapath}/ai_word_kr.npy")
+        words = np.load(f"{datapath}/ai_word_list_kr.npy")
+        words = pd.DataFrame(words, columns=["word_list"])
+        print(words_v.shape, words.shape)
+        return
+
+    else:
+        kr_word_v = np.load(f"{datapath}/kr_word_v.npy")
+        en_word_v = np.load(f"{datapath}/en_word_v.npy")
+        words_v = np.concatenate([kr_word_v, en_word_v])
+        words = pd.read_csv(f"../dataset_timeseries/words.csv")
+
+    with open(f"{folderpath}/{words_v.shape[1]}/centroids", "rb") as fp2:
         whole_centroid_list = pickle.load(fp2)
-        print("Centroids is loaded.")
-    print(whole_centroid_list.shape)
-
-    # print(whole_centroid_list[0].shape)
-    # print(whole_centroid_list[0])
-    kr_word_v = np.load("../dataset/kr_word_v.npy")
-    en_word_v = np.load("../dataset/en_word_v.npy")
-    words_v = np.concatenate([kr_word_v, en_word_v])
-
-    words = pd.read_csv("../dataset_timeseries/words.csv")
-    # words.to_csv(f"../dataset_timeseries/words.csv", index=None)
 
     total_word_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
-        neighbors, distances = get_neighbors(centroid, words_v, n_word)
+        neighbors, _ = get_neighbors(centroid, words_v, n_word)
+        print(neighbors)
         centroid_word_list = []
         for neighbor in neighbors:
             centroid_word_list.append(words["word_list"][neighbor])
@@ -49,11 +52,16 @@ def find_nearest_word(folderpath, datapath, n_word):
 
 
 def find_nearest_docx(custompath, datapath, n_docs):
-    with open(f"{custompath}/centroids", "rb") as fp2:
-        whole_centroid_list = pickle.load(fp2)
-        print("Centroids is loaded.")
-    doc_v = np.load(f"{datapath}/kr_doc_v.npy")
-    docs = pd.read_csv("{datapath}/kr_en_10000_bench.csv")
+    if "Ai" in datapath:
+        doc_v = np.load(f"{datapath}/ai_doc_kr.npy")
+        docs = pd.read_csv(f"{datapath}/data.csv")
+
+    else:
+        doc_v = np.load(f"{datapath}/kr_doc_v.npy")
+        docs = pd.read_csv(f"{datapath}/kr_en_10000_bench.csv")
+
+    with open(f"{custompath}/{doc_v.shape[1]}/centroids", "rb") as fp:
+        whole_centroid_list = pickle.load(fp)
 
     total_docs_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
