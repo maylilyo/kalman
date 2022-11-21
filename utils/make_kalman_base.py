@@ -103,14 +103,13 @@ def make_base_scala(docx_count_list):
                 measurement[0](list) = 0번째 cluster의 연도별 문서 개수
             motion_control(list) = 연도별 문서 개수의 변화량(scala)
     """
-
     motion_controls = [[] for i in range(len(docx_count_list))]
     measurements = docx_count_list
 
     # 클러스터 내부 문서 / 모든 클러스터(전체) 문서 비율
     total_sum = np.sum(measurements)  # 전체 문서의 합계
     # print(f"total sum is {total_sum}")
-    measurements = np.divide(measurements, total_sum) * 100
+    # measurements = np.divide(measurements, total_sum) * 100
 
     # 클러스터 내부 문서 / 클러스터별 전체 문서 비율
     # cluster_sum = measurements.sum(axis=1)  # 각 cluste 문서의 합계(2011~2021)

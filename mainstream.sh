@@ -1,0 +1,1 @@
+python3 mainstream.py --n_cluster=70

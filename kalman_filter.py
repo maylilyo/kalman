@@ -43,6 +43,8 @@ def kalman_filter_scala(scala_motion_controls, scala_measurements):
     # scala_measurements = np.array(scala_measurements)
 
     cluster_sum = scala_measurements.sum(axis=1)  # 각 cluste 문서의 합계(2011~2021)
+    kalman_scala_result = []
+    n_cluster = scala_motion_controls.shape[0]
     for i in range(len(scala_measurements)):
         measurements = scala_measurements[i]
         measurement_var = np.var(measurements)
@@ -65,10 +67,17 @@ def kalman_filter_scala(scala_motion_controls, scala_measurements):
         # )
         # print(f"{round(mu * 100, 4)}, {round(measurements[-1] * 100, 4)}")
         # print(f"{round(mu, 4)}")
+        kalman_scala_result.append(round(mu, 4))
+    kalman_scala_result = pd.DataFrame(kalman_scala_result, columns=["predict"])
+    kalman_scala_result.to_csv(
+        f"./results/kalman_scala_{n_cluster}_result.csv", index=False
+    )
 
 
 def kalman_filter_vector(vector_motion_controls, vector_measurements):
     total_cos = 0
+    kalman_vector_result = []
+    n_cluster = vector_motion_controls.shape[0]
     for i in range(len(vector_measurements)):
         measurements = vector_measurements[i]
         # measurement_var = np.var(measurements, axis=0)
@@ -86,6 +95,11 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
             mu, sig = measurement_update(mu, sig, measurements[j], measurement_var)
         cos_sim = cosine_similarity(mu, measurements[-1])
         total_cos += cos_sim
+        kalman_vector_result.append(round(cos_sim, 4))
+    kalman_vector_result = pd.DataFrame(kalman_vector_result, columns=["predict"])
+    kalman_vector_result.to_csv(
+        f"./results/kalman_vector_{n_cluster}_result.csv", index=False
+    )
     # print(total_cos / len(vector_measurements))  # 비율로 print 해야할 때
 
 

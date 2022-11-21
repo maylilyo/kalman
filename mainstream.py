@@ -26,10 +26,10 @@ def main():
     average(vector_measurements, args.average_years, "vector")
 
     # centroid로 nearest words, nearest docx 탐색   # TODO : (이거 2중for문 말고 numpy로 한번에 연산 필요)
-    # find_nearest_word(custompath, args.datapath, args.n_word)
+    find_nearest_word(custompath, args)
 
     # nearest docx와 nearest words 사이의 좌표 비교  # TODO : (이것도)
-    find_nearest_docx(custompath, args.datapath, args.n_docs)
+    find_nearest_docx(custompath, args)
 
 
 if __name__ == "__main__":
