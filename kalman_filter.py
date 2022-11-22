@@ -93,30 +93,44 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
             mu, sig = state_prediction(mu, sig, motion_control[j], motion_control_var)
             # print("predict: [%f %f]" % (mu, sig))
             mu, sig = measurement_update(mu, sig, measurements[j], measurement_var)
-        cos_sim = cosine_similarity(mu, measurements[-1])
-        total_cos += cos_sim
-        kalman_vector_result.append(round(cos_sim, 4))
+        # result = cosine_similarity(mu + measurements[-2], measurements[-1])
+        result = euclidean_distance(mu + measurements[-2], measurements[-1])
+        total_cos += result
+        kalman_vector_result.append(round(result, 4))
     kalman_vector_result = pd.DataFrame(kalman_vector_result, columns=["predict"])
     kalman_vector_result.to_csv(
-        f"./results/kalman_vector_{n_cluster}_result.csv", index=False
+        f"./results/kalman_vector_{n_cluster}_euclidean_result.csv", index=False
     )
+    # kalman_vector_result.to_csv(
+    #     f"./results/kalman_vector_{n_cluster}_cossim_result.csv", index=False
+    # )
     # print(total_cos / len(vector_measurements))  # 비율로 print 해야할 때
 
 
 def average(measurements, years, mode):
+    average_list = []
     if mode == "scala":
         for measurement in measurements:
             measurement = measurement[-years - 1 : -1]
-            # print(round(sum(measurement) / years, 4))
+            measurement_mean = sum(measurement) / years
+            average_list.append(measurement_mean)
+        average_list = pd.DataFrame(average_list, columns=["predict"])
+        average_list.to_csv(f"./results/average/{years}/scala.csv", index=False)
     else:
         total_cos = 0
         for i, measurement in enumerate(measurements):
             centroid = np.array(measurement[-1])
             measurement = measurement[-years - 1 : -1]
             mean = np.mean(measurement, axis=0)
-            cos_sim = cosine_similarity(mean, centroid)
-            total_cos += cos_sim
-            # print(round(cos_sim, 4))
+            # result = cosine_similarity(mean, centroid)
+            result = euclidean_distance(mean, centroid)
+            average_list.append(result)
+            # total_result += result
+            # print(round(result, 4))
+        average_list = pd.DataFrame(average_list, columns=["predict"])
+        average_list.to_csv(
+            f"./results/average/{years}/euclidean_vector.csv", index=False
+        )
         # print(round(total_cos / len(measurements), 4))
 
 

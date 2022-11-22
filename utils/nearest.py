@@ -26,8 +26,6 @@ def find_nearest_word(custompath, args):
         words_v = np.load(f"{args.datapath}/ai_word_kr.npy")
         words = np.load(f"{args.datapath}/ai_word_list_kr.npy")
         words = pd.DataFrame(words, columns=["word_list"])
-        print(words_v.shape, words.shape)
-        return
 
     else:
         kr_word_v = np.load(f"{args.datapath}/kr_word_v.npy")
@@ -41,14 +39,17 @@ def find_nearest_word(custompath, args):
     total_word_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
         neighbors, _ = get_neighbors(centroid, words_v, args.n_word)
-        print(neighbors)
+        # print(neighbors)
         centroid_word_list = []
         for neighbor in neighbors:
             centroid_word_list.append(words["word_list"][neighbor])
         total_word_list.append(centroid_word_list)
 
-    for i in range(len(total_word_list)):
-        print(f"centroid {i} : word {total_word_list[i]}")
+    total_word_list = pd.DataFrame(total_word_list)
+    total_word_list.to_csv(f"./results/wordlist.csv", index=False)
+
+    # for i in range(len(total_word_list)):
+    #     print(f"centroid {i} : word {total_word_list[i]}")
 
 
 def find_nearest_docx(custompath, args):
@@ -71,5 +72,7 @@ def find_nearest_docx(custompath, args):
             centroid_word_list.append(docs["kr"][neighbor])
         total_docs_list.append(centroid_word_list)
 
-    for i in range(len(total_docs_list)):
-        print(f"centroid {i} : docs {total_docs_list[i]}")
+    total_docs_list = pd.DataFrame(total_docs_list)
+    total_docs_list.to_csv(f"./results/docxlist.csv", index=False)
+    # for i in range(len(total_docs_list)):
+    #     print(f"centroid {i} : docs {total_docs_list[i]}")
