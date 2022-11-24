@@ -72,6 +72,8 @@ def kalman_filter_scala(scala_motion_controls, scala_measurements):
     kalman_scala_result.to_csv(
         f"./results/kalman_scala_{n_cluster}_result.csv", index=False
     )
+    result = kalman_scala_result.mean(axis="rows")["predict"]
+    print(f"Kalman Average(|Predoct-Actual|) = {result}")
     return kalman_scala_result
 
 
@@ -80,7 +82,6 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
     kalman_vector_result = []
     n_cluster = vector_motion_controls.shape[0]
     predict = []
-
     for i in range(len(vector_measurements)):
         measurements = vector_measurements[i]
         # measurement_var = np.var(measurements, axis=0)
@@ -122,6 +123,8 @@ def average(measurements, years, mode):
             average_list.append(measurement_mean)
         average_list = pd.DataFrame(average_list, columns=["predict"])
         average_list.to_csv(f"./results/average/{years}/scala.csv", index=False)
+        result = average_list.mean(axis="rows")
+        print(f"최신 {years}년 평균 Average(|Predoct-Actual|) = {result}")
     else:
         total_cos = 0
         for i, measurement in enumerate(measurements):
