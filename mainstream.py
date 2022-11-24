@@ -36,7 +36,6 @@ def main():
     average(vector_measurements, args.average_years, "vector")
     centroid_visualization_2D(custompath, predict, vector_measurements, args, 11)
 
-    return
     # centroid로 nearest words, nearest docx 탐색   # TODO : (이거 2중for문 말고 numpy로 한번에 연산 필요)
     find_nearest_word(custompath, args)
 
