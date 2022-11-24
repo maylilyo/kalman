@@ -36,20 +36,37 @@ def make_data(args, mode, custompath):
     return measurements_df
 
 
+def issue():
+    # n_fit을 찾는 과정에서 aic를 구했을 때 왜 오류가 생기는지?
+    # for p in range(1, 2):
+    #     results = model.fit(p)
+    #     if results.aic is None:
+    #         results_aic.append(0)
+    #     else:
+    #         results_aic.append(results.aic)
+    # # n_fit = results_aic.index(min(results_aic)) + 1
+    return 3
+
+
 def forecasting_var(model, train, test):
-    results_aic = []
-    for p in range(1, 6):
-        results = model.fit(p)
-        results_aic.append(results.aic)
-    # n_fit = results_aic.index(min(results_aic)) + 1
-    n_fit = 5
-    results = model.fit(n_fit)
-    laaged_values = train.values[-n_fit:]
-    forecast = pd.DataFrame(
-        results.forecast(y=laaged_values, steps=1), index=test.index
-    )
+    n_fit = issue()
+    for p in range(1, 10):
+        results = model.fit(n_fit)
+        laaged_values = train.values[-n_fit:]
+        forecast = pd.DataFrame(
+            results.forecast(y=laaged_values, steps=1), index=test.index
+        )
     return forecast
 
+def print_average(forecast, test):
+    forecast = forecast.values.tolist()[0]
+    test = test.values.tolist()[0]
+    sub_list = []
+    for ai, bi in zip(forecast, test):
+        sub_list.append(abs(ai - bi))
+    result = np.mean(np.array(sub_list))
+    print(f"VAR Average(|Predoct-Actual|) = {result}")
+    pass
 
 def var_scala():
     test_length = 1
@@ -63,12 +80,13 @@ def var_scala():
     test = mydata.iloc[-test_length:, :]
 
     # print(train)
-    # print(test)
-    # print(np.var(train))
     forecasting_model = VAR(train)
     forecast = forecasting_var(forecasting_model, train, test)
-    print(forecast)
 
+    print_average(forecast, test)
+
+def var_vector():
+    pass
 
 if __name__ == "__main__":
     var_scala()
