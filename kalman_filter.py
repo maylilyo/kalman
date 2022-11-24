@@ -72,12 +72,15 @@ def kalman_filter_scala(scala_motion_controls, scala_measurements):
     kalman_scala_result.to_csv(
         f"./results/kalman_scala_{n_cluster}_result.csv", index=False
     )
+    return kalman_scala_result
 
 
 def kalman_filter_vector(vector_motion_controls, vector_measurements):
     total_cos = 0
     kalman_vector_result = []
     n_cluster = vector_motion_controls.shape[0]
+    predict = []
+
     for i in range(len(vector_measurements)):
         measurements = vector_measurements[i]
         # measurement_var = np.var(measurements, axis=0)
@@ -86,6 +89,7 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
         motion_control = vector_motion_controls[i]
         # motion_control_var = np.var(motion_control, axis=0)
         motion_control_var = np.cov(motion_control)[0, 1]  # tmp
+        # print(measurement_var, motion_control_var)
 
         mu = 0
         sig = 0
@@ -94,13 +98,15 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
             # print("predict: [%f %f]" % (mu, sig))
             mu, sig = measurement_update(mu, sig, measurements[j], measurement_var)
         # result = cosine_similarity(mu + measurements[-2], measurements[-1])
-        result = euclidean_distance(mu + measurements[-2], measurements[-1])
+        result = euclidean_distance(mu - measurements[-2], measurements[-1])
+        predict.append(mu - measurements[-2])
         total_cos += result
         kalman_vector_result.append(round(result, 4))
     kalman_vector_result = pd.DataFrame(kalman_vector_result, columns=["predict"])
     kalman_vector_result.to_csv(
         f"./results/kalman_vector_{n_cluster}_euclidean_result.csv", index=False
     )
+    return predict
     # kalman_vector_result.to_csv(
     #     f"./results/kalman_vector_{n_cluster}_cossim_result.csv", index=False
     # )
@@ -141,5 +147,6 @@ if __name__ == "__main__":
         vector_motion_controls,
         vector_measurements,
     ) = make_base(15, 2011, 2021)
+
     kalman_filter_scala(scala_motion_controls, scala_measurements)
     kalman_filter_vector(vector_motion_controls, vector_measurements)
