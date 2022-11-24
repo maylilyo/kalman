@@ -3,3 +3,4 @@ results
 VAR_example.py
 mainstream.sh
 scala_goldlabel.csv
+*.png
