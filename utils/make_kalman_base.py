@@ -106,13 +106,7 @@ def make_base_scala(docx_count_list):
     motion_controls = [[] for i in range(len(docx_count_list))]
     measurements = docx_count_list
 
-    # 클러스터 내부 문서 / 모든 클러스터(전체) 문서 비율
     total_sum = np.sum(measurements)  # 전체 문서의 합계
-    # print(f"total sum is {total_sum}")
-    # measurements = np.divide(measurements, total_sum) * 100
-
-    # 클러스터 내부 문서 / 클러스터별 전체 문서 비율
-    # cluster_sum = measurements.sum(axis=1)  # 각 cluste 문서의 합계(2011~2021)
 
     for idx1, cluster in enumerate(measurements):
         for idx2 in range(len(cluster) - 1):
