@@ -8,9 +8,9 @@ from kalman_filter import euclidean_distance
 
 
 def get_neighbors(centroid, words, num_neighbors):
-    distances = list()
+    distances = []
     for idx, word in enumerate(words):
-        dist = euclidean_distance(centroid, word)
+        dist = np.linalg.norm(centroid - word) #
         distances.append((idx, dist))
     distances.sort(key=lambda tup: tup[1])
     distances = distances[:num_neighbors]
@@ -18,6 +18,9 @@ def get_neighbors(centroid, words, num_neighbors):
     neighbor = [i[0] for i in distances]
     distance = [i[1] for i in distances]
 
+    # distance = np.linalg.norm(forecast - test)
+    # distance_list.append(distance)
+    # print(np.mean(np.array(distance_list)))
     return neighbor, distance
 
 
@@ -41,8 +44,8 @@ def find_nearest_word(custompath, args):
         neighbors, _ = get_neighbors(centroid, words_v, args.n_word)
         total_word_list.append(words["word_list"].loc[neighbors].values.tolist())
 
-    # total_word_list = pd.DataFrame(total_word_list)
-    # total_word_list.to_csv(f"./results/wordlist.csv", index=False)
+    total_word_list = pd.DataFrame(total_word_list)
+    total_word_list.to_csv(f"./results/wordlist.csv", index=False)
 
 
 def find_nearest_docx(custompath, args):
