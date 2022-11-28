@@ -17,7 +17,6 @@ def differencing(mydata):
 
 
 def stationary_timeseries(mydata):
-
     for i in range(mydata.shape[1]):
         adfuller_test = adfuller(mydata[f"{i}"], autolag="AIC")
         statistic = adfuller_test[0]
@@ -33,7 +32,18 @@ def make_data(args, mode, custompath):
         measurements_df = pd.DataFrame(measurements).transpose()
         m_columns = [f"{i}" for i in range(measurements_df.shape[1])]
         measurements_df.columns = m_columns
-    return measurements_df
+        return measurements_df
+
+    elif mode == "vector":
+        (_, _, motion_controls, measurements) = make_base(custompath, args)
+        """
+        TMP
+        """
+        datalist = []
+        for i in range(args.n_cluster):
+            data = pd.DataFrame(measurements[i])
+            datalist.append(data)
+        return datalist
 
 
 def issue():
@@ -58,6 +68,7 @@ def forecasting_var(model, train, test):
         )
     return forecast
 
+
 def print_average(forecast, test):
     forecast = forecast.values.tolist()[0]
     test = test.values.tolist()[0]
@@ -68,11 +79,13 @@ def print_average(forecast, test):
     print(f"VAR Average(|Predoct-Actual|) = {result}")
     pass
 
+
 def var_scala():
     test_length = 1
     args = get_args()
     custompath = f"../label/{args.n_cluster}"  # 연산을 위해 새롭게 생성된/로드할 데이터의 위치
     mydata = make_data(args, "scala", custompath)
+    print(mydata)
     # stationary_timeseries(mydata)  # 차분 이전
     # mydata = differencing(mydata)  # 차분
 
@@ -85,8 +98,26 @@ def var_scala():
 
     print_average(forecast, test)
 
+
 def var_vector():
-    pass
+    test_length = 1
+    args = get_args()
+    custompath = f"../label/{args.n_cluster}"  # 연산을 위해 새롭게 생성된/로드할 데이터의 위치
+    mydata = make_data(args, "vector", custompath)
+
+    distance_list = []
+    for data in mydata:
+        train = data.iloc[:-test_length, :]
+        test = data.iloc[-test_length:, :]
+
+        forecasting_model = VAR(train)
+        forecast = forecasting_var(forecasting_model, train, test)
+
+        distance = np.linalg.norm(forecast - test)
+        distance_list.append(distance)
+    print(np.mean(np.array(distance_list)))
+
 
 if __name__ == "__main__":
-    var_scala()
+    # var_scala()
+    var_vector()
