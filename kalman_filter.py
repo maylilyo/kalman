@@ -107,6 +107,9 @@ def kalman_filter_vector(vector_motion_controls, vector_measurements):
     kalman_vector_result.to_csv(
         f"./results/kalman_vector_{n_cluster}_euclidean_result.csv", index=False
     )
+    result = kalman_vector_result.mean(axis="rows")["predict"]
+    print(f"Kalman Average(Euclidean distance) = {result}")
+
     return predict
     # kalman_vector_result.to_csv(
     #     f"./results/kalman_vector_{n_cluster}_cossim_result.csv", index=False
@@ -140,6 +143,8 @@ def average(measurements, years, mode):
         average_list.to_csv(
             f"./results/average/{years}/euclidean_vector.csv", index=False
         )
+        result = average_list.mean(axis="rows")
+        print(f"최신 {years}년 평균 Average(Euclidean) = {result}")
         # print(round(total_cos / len(measurements), 4))
 
 
