@@ -5,12 +5,13 @@ import tqdm
 import pickle
 
 from kalman_filter import euclidean_distance
+from utils.tf_idf import tf_idf
 
 
 def get_neighbors(centroid, words, num_neighbors):
     distances = []
     for idx, word in enumerate(words):
-        dist = np.linalg.norm(centroid - word) #
+        dist = np.linalg.norm(centroid - word)
         distances.append((idx, dist))
     distances.sort(key=lambda tup: tup[1])
     distances = distances[:num_neighbors]
@@ -66,7 +67,13 @@ def find_nearest_docx(custompath, args):
         centroid_word_list = []
         total_docs_list.append(docs["kr"].loc[neighbors].values.tolist())
 
-    total_docs_list = pd.DataFrame(total_docs_list)
-    total_docs_list.to_csv(f"./results/docxlist.csv", index=False)
-    # for i in range(len(total_docs_list)):
-    #     print(f"centroid {i} : docs {total_docs_list[i]}")
+    total_docs_df = pd.DataFrame(total_docs_list)
+    total_docs_df.to_csv(f"./results/docxlist.csv", index=False)
+
+    tf_idf_list = []
+    for docs in total_docs_list:
+        tf_idf_words = tf_idf(docs, args)
+        tf_idf_list.append(tf_idf_words)
+
+    tf_idf_list = pd.DataFrame(tf_idf_list)
+    tf_idf_list.to_csv(f"./results/tf_idf.csv", index=False)
