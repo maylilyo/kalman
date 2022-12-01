@@ -19,13 +19,10 @@ def get_neighbors(centroid, words, num_neighbors):
     neighbor = [i[0] for i in distances]
     distance = [i[1] for i in distances]
 
-    # distance = np.linalg.norm(forecast - test)
-    # distance_list.append(distance)
-    # print(np.mean(np.array(distance_list)))
     return neighbor, distance
 
 
-def find_nearest_word(custompath, args):
+def find_nearest_word(custompath, args, whole_centroid_list):
     if "Ai" in args.datapath:
         words_v = np.load(f"{args.datapath}/ai_word_kr.npy")
         words = np.load(f"{args.datapath}/ai_word_list_kr.npy")
@@ -37,8 +34,8 @@ def find_nearest_word(custompath, args):
         words_v = np.concatenate([kr_word_v, en_word_v])
         words = pd.read_csv(f"../dataset_timeseries/words.csv")
 
-    with open(f"{custompath}/{words_v.shape[1]}/centroids", "rb") as fp2:
-        whole_centroid_list = pickle.load(fp2)
+    # with open(f"{custompath}/{words_v.shape[1]}/centroids", "rb") as fp2:
+    #     whole_centroid_list = pickle.load(fp2)
 
     total_word_list = []
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
@@ -49,7 +46,7 @@ def find_nearest_word(custompath, args):
     total_word_list.to_csv(f"./results/wordlist.csv", index=False)
 
 
-def find_nearest_docx(custompath, args):
+def find_nearest_docx(custompath, args, origin_df, whole_centroid_list):
     if "Ai" in args.datapath:
         doc_v = np.load(f"{args.datapath}/ai_doc_kr.npy")
         docs = pd.read_csv(f"{args.datapath}/data.csv")
@@ -58,14 +55,22 @@ def find_nearest_docx(custompath, args):
         doc_v = np.load(f"{args.datapath}/kr_doc_v.npy")
         docs = pd.read_csv(f"{args.datapath}/kr_en_10000_bench.csv")
 
-    with open(f"{custompath}/{doc_v.shape[1]}/centroids", "rb") as fp:
-        whole_centroid_list = pickle.load(fp)
-
+    # with open(f"{custompath}/{doc_v.shape[1]}/centroids", "rb") as fp:
+    #     whole_centroid_list = pickle.load(fp)
+    # print(whole_centroid_list)
     total_docs_list = []
+    # TODO
+    """
+    Cluster로 분류하고 찾은 게 아니라 전체 data 중 가장 가까운 docs를 찾아서 생긴 연관성 문제
+    """
     for idx, centroid in enumerate(tqdm.tqdm(whole_centroid_list)):
+        doc_cluster = origin_df.loc[origin_df["cluster"] == idx]
+        doc_cluster = doc_cluster.drop(["time", "cluster"], axis="columns")
+        doc_v = doc_cluster.to_numpy()
+
         neighbors, distances = get_neighbors(centroid, doc_v, args.n_docs)
-        centroid_word_list = []
-        total_docs_list.append(docs["kr"].loc[neighbors].values.tolist())
+        neighbors_index = doc_cluster.iloc[neighbors].index.tolist()
+        total_docs_list.append(docs["kr"].loc[neighbors_index].values.tolist())
 
     total_docs_df = pd.DataFrame(total_docs_list)
     total_docs_df.to_csv(f"./results/docxlist.csv", index=False)
