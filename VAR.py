@@ -9,6 +9,7 @@ from statsmodels.tsa.stattools import adfuller
 
 from utils.arguments import get_args
 from utils.make_kalman_base import make_base
+from utils.visualization import scala_visualization_2D, centroid_visualization_2D
 
 
 def differencing(mydata):
@@ -55,7 +56,7 @@ def issue():
     #     else:
     #         results_aic.append(results.aic)
     # # n_fit = results_aic.index(min(results_aic)) + 1
-    return 3
+    return 1
 
 
 def forecasting_var(model, train, test):
@@ -85,7 +86,8 @@ def var_scala():
     args = get_args()
     custompath = f"../label/{args.n_cluster}"  # 연산을 위해 새롭게 생성된/로드할 데이터의 위치
     mydata = make_data(args, "scala", custompath)
-    print(mydata)
+    _, scala_measurements, _, _ = make_base(custompath, args)
+    # print(mydata)
     # stationary_timeseries(mydata)  # 차분 이전
     # mydata = differencing(mydata)  # 차분
 
@@ -95,8 +97,17 @@ def var_scala():
     # print(train)
     forecasting_model = VAR(train)
     forecast = forecasting_var(forecasting_model, train, test)
-
     print_average(forecast, test)
+    # =-----------
+    forecast = forecast.transpose()
+    forecast.columns = ["predict"]
+    print(forecast)
+
+    # fton = forecast.to_numpy()
+    # tton = train.to_numpy()
+    for i in range(args.n_cluster):
+        scala_visualization_2D(custompath, forecast, scala_measurements, args, i, "VAR")
+        # scala measurement와 mydata 형식 맞추기
 
 
 def var_vector():
@@ -112,6 +123,7 @@ def var_vector():
 
         forecasting_model = VAR(train)
         forecast = forecasting_var(forecasting_model, train, test)
+        print(forecast)
 
         distance = np.linalg.norm(forecast - test)
         distance_list.append(distance)
