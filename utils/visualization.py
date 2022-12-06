@@ -28,8 +28,10 @@ def make_PCA(data, n_component):
 
 
 def scala_visualization_2D(
-    custompath, predict, scala_measurements, args, clusternumber
+    custompath, predict, scala_measurements, args, clusternumber, mode
 ):
+    # print(predict.shape) (30,1), pandas
+    # print(scala_measurements.shape) (30,enddate-startdate), nparray
 
     time_color = sns.color_palette("pastel", args.n_cluster).as_hex()
     predict_color = sns.color_palette("bright", args.n_cluster).as_hex()
@@ -49,7 +51,8 @@ def scala_visualization_2D(
     colors = [time_color[0] for i in range(len(years) - 1)] + [predict_color[0]]
 
     plt.xlabel(f"Forecast of next year's document volume | cluster {clusternumber}")
-    plt.bar(x, timeseries, color=colors, width=1.8)
+    # plt.bar(x, timeseries, color=colors, width=1.8)
+    plt.plot(x, timeseries)
     plt.xticks(x, years)
     plt.tick_params(
         axis="x",
@@ -59,11 +62,15 @@ def scala_visualization_2D(
     )
 
     # plt.savefig(f"./scala_{clusternumber}.png")
-    plt.savefig(f"./results/images/scala/scala_{clusternumber}.png")
+    if mode == "VAR":
+        plt.savefig(f"./results/images/scala/scala_{clusternumber}_VAR.png")
+    else:
+        plt.savefig(f"./results/images/scala/scala_{clusternumber}.png")
+    plt.cla()
 
 
 def centroid_visualization_2D(
-    custompath, predict, vector_measurements, args, clusternumber
+    custompath, predict, vector_measurements, args, clusternumber, mode
 ):
     """
     clusternumber = 몇번째 cluster에 대한 centroid 이동을 print할 예정인지
@@ -120,4 +127,8 @@ def centroid_visualization_2D(
     # plt.text(time_centroid["x"][-1], time_centroid["y"][-1], "actual")
 
     plt.xlabel(f"Forecast of next year's cluster centroid | cluster {clusternumber}")
-    plt.savefig(f"./results/images/vector/vector_{clusternumber}.png")
+
+    if mode == "VAR":
+        plt.savefig(f"./results/images/vector/vector_{clusternumber}_VAR.png")
+    else:
+        plt.savefig(f"./results/images/vector/vector_{clusternumber}.png")
